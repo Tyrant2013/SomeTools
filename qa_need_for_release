@@ -1,0 +1,24 @@
+#!/bin/bash
+#build and upload for QA....
+#
+#make by zhuangxiaowei_dev@163.com
+#
+#hahahahahahahhahahaha
+#cd ~/iOSProjects/AutoLearning
+#xcrun agvtool next-version -all
+data="正式库测试版本"
+#for line in `cat ~/Desktop/changeLog.txt`
+#do
+# data=${data}${line}."<br>"
+#done
+echo $data
+fir build_ipa ~/iOSProjects/AutoLearning -w -S ForQARelease -o ~/Desktop/ReadyForRelease -p -c $data -T 08ac5648ec2638bd11fc1e3e173951af
+#获取打包完成后的包名,然后向测试人员发送邮件
+appName=""
+for name in $(ls -l ~/Desktop/ReadyForRelease |awk '/^d/{print $NF}')
+do 
+  appName=$(basename $name .app.dSYM)
+done
+echo $appName
+cd ~/Tools
+python vemail.py appName

@@ -1,0 +1,30 @@
+#!/bin/bash
+#build and upload for QA....
+#
+#make by zhuangxiaowei_dev@163.com
+#
+#hahahahahahahhahahaha
+#删除上次生成的ipa包
+cd ~/Desktop/ReadyForQA
+rm -rf *
+#获取更新日志
+data="测试库测试版本"
+#for line in `cat ~/Desktop/changeLog.txt`
+#do
+# data=${data}${line}."<br>"
+#done
+echo $data
+#打包并上传
+fir build_ipa ~/iOSProjects/AutoLearning -w -S ForQA -o ~/Desktop/ReadyForQA -p -c $data -T 08ac5648ec2638bd11fc1e3e173951af
+#更改版本号
+cd ~/iOSProjects/AutoLearning
+xcrun agvtool next-version -all
+#获取打包完成后的包名,然后向测试人员发送邮件
+appName=""
+for name in $(ls -l ~/Desktop/ReadyForQA |awk '/^d/{print $NF}')
+do 
+  appName=$(basename $name .app.dSYM)
+done
+cd ~/Tools
+python vemail.py $appName
+echo $appName

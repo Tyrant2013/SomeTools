@@ -1,0 +1,4 @@
+cd /Users/zhuangxiaowei/Library/Developer/Xcode/DerivedData
+rm -rf *
+cd /Users/zhuangxiaowei/Library/Containers/com.tencent.qq/Data/Library/Application\ Support/QQ/119923856/Image
+rm -rf *
