@@ -12,13 +12,21 @@ data="正式库测试版本"
 # data=${data}${line}."<br>"
 #done
 echo $data
-fir build_ipa ~/iOSProjects/AutoLearning -w -S ForQARelease -o ~/Desktop/ReadyForRelease -p -c $data -T 08ac5648ec2638bd11fc1e3e173951af
+#fir build_ipa ~/iOSProjects/AutoLearning -w -S ForQARelease -o ~/Desktop/ReadyForRelease -p -c $data -T 08ac5648ec2638bd11fc1e3e173951af
+
+cd ~/iOSProjects/AutoLearning
+
+xcodebuild clean
+xcodebuild -workspace AutoLearning.xcworkspace -scheme ForQARelease -configuration Release -archivePath ~/Desktop/AutoLearning_Archive/ForQARelease.xcarchive archive
+xcodebuild -exportArchive -archivePath ~/Desktop/AutoLearning_Archive/ForQARelease.xcarchive -exportOptionsPlist ~/Desktop/AutoLearning_IPA/options.plist -exportPath ~/Desktop/AutoLearning_IPA
+fir publish ~/Desktop/AutoLearning_IPA/ForQARelease.ipa -T 08ac5648ec2638bd11fc1e3e173951af
+
 #获取打包完成后的包名,然后向测试人员发送邮件
-appName=""
-for name in $(ls -l ~/Desktop/ReadyForRelease |awk '/^d/{print $NF}')
-do 
-  appName=$(basename $name .app.dSYM)
-done
+appName="正式库版本"
+#for name in $(ls -l ~/Desktop/ReadyForRelease |awk '/^d/{print $NF}')
+#do 
+#  appName=$(basename $name .app.dSYM)
+#done
 echo $appName
 cd ~/Tools
 python vemail.py appName
