@@ -1,0 +1,34 @@
+#!/bin/bash
+
+ipaDirector="~/Desktop/AutoLearning_IPA"
+ipaTest="~/Desktop/aaaaa"
+ipa="~/Desktop/AutoLearning_IPA/ForQARelease_a.ipa"
+ipaa="ForQARelease_a.ipa"
+
+if [ -d "$ipaDirector" ]; then
+    echo "$ipaDirector dirctor exist"
+else 
+    echo "$ipaDirector dirctor not exist"
+fi
+
+if [ -d "$ipaTest" ]; then
+    echo "diector exist"
+else 
+    echo "dirctor not exist"
+    mkdir "$ipaTest"
+    #cd ~/Desktop
+    #mkdir aaaaaa
+fi
+
+if [ -f "$ipa" ]; then
+echo "file exists"
+else
+echo "file not exists"
+fi
+
+cd ~/Desktop/AutoLearning_IPA
+if [ -f "$ipaa" ]; then
+echo "file aaaaa"
+else 
+echo "file bbbbb"
+fi
