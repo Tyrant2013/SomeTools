@@ -2,79 +2,83 @@
 
 import urllib2
 from bs4 import BeautifulSoup
+import json
+import os
+import re
 
 class XiaoShuoCatch:
 
     def __init__(self):
         self.urls = []
         self.titles = []
-        self.baseUrl = 'http://www.4xiaoshuo.com/55/55533/'
+        self.infoFileName = 'xiao_shuo_update_info.txt'
+        self.loadInfo()
 
-    def test(self):
-        req = urllib2.Request(self.baseUrl)
+    def loadInfo(self):
+        if (os.path.exists(self.infoFileName)):
+            lastUpdateInfoFile = open(self.infoFileName, 'r')
+            self.updateInfo = json.load(lastUpdateInfoFile)
+            lastUpdateInfoFile.close()
+        else:
+            self.updateInfo = {}
+
+    def updateInfoWithNew(self, novelInfo):
+        self.updateInfo[novelInfo['novelKey']] = novelInfo
+        file_handler = open(self.infoFileName, 'w')
+        json.dump(self.updateInfo, file_handler)
+        file_handler.close()
+
+    def checkAndDownload(self):
+        for (key, val) in self.updateInfo.items():
+            fileName = val['name']
+            baseUrl = val['baseUrl']
+            lastUrl = val['lastUrl']
+            chapterUrls = self.getChapterUrls(baseUrl)
+            updateUrls = self.getValidUrls(chapterUrls, lastUrl)
+            print '只找到%s章, 最新章节有%s章' %(len(chapterUrls), len(updateUrls))
+            if (len(updateUrls)):
+                self.getAllContentWithUrls(baseUrl, updateUrls)
+                val['lastUrl'] = updateUrls[-1]
+                self.updateInfoWithNew(val)
+
+    #获取全部章节链接
+    def getChapterUrls(self, baseUrl):
+        req = urllib2.Request(baseUrl)
         response = urllib2.urlopen(req)
         html = response.read().decode('utf-8')
         soup = BeautifulSoup(html, 'lxml')
-        print len(soup.find_all('a'))
+        datas = soup.find_all('dt')[1].next_siblings
+        allUrls = []
+        regex = re.compile(r'href=\"(.+?)\"')
+        for dd in datas:
+            m = regex.findall(str(dd))
+            if (len(m) == 1):
+                allUrls.append(m[0])
+        return allUrls
 
-    def getChapterUrls(self):
-        req = urllib2.Request(self.baseUrl)
-        response = urllib2.urlopen(req)
-        html = response.read().decode('utf-8')
-        soup = BeautifulSoup(html, 'lxml')
-        datas = soup.find_all('dd')
-        for i in range(12, len(datas)):
-            self.urls.append(datas[i].a['href'])
-
-    def getAllDatas(self):
-        for index in self.urls:
-            url = '%s%s'%(self.baseUrl, index)
-            html = self.getDataFromUrl(url)
-            soup = BeautifulSoup(html, 'lxml')
-            self.saveData(soup)
-
-    def getLastUpdateUrls(self):
-        req = urllib2.Request(self.baseUrl)
-        response = urllib2.urlopen(req)
-        html = response.read().decode('utf-8')
-        soup = BeautifulSoup(html, 'lxml')
-        datas = soup.find_all('dd', limit = 12)
-        for i in range(0, len(datas)):
-            self.urls.append(datas[i].a['href'])
-            self.titles.append(datas[i].string)
-
-    def printLastUpdateInfo(self):
-        if (len(self.titles) > 0):
-            print '找到如下的章节更新：\n' 
-            for i in range(0, len(self.titles)):
-                title = self.titles[i]
-                print '%s %s' %(i + 1, title)
-
-    def makeADicisionForDownload(self):
-        tip = '输入要下载的章节序号（0开始下载):'
-        index = int(raw_input(tip))
-        indexs = []
-        while (index != 0):
-            indexs.append(index - 1)
-            index = int(raw_input(tip))
-        needDownloadUrls = []
-        needDownloadTitles = []
-        for ind in indexs:
-            needDownloadUrls.append(self.urls[ind])
-            needDownloadTitles.append(self.titles[ind])
-        self.urls = needDownloadUrls
-        for url in reversed(self.urls):
-            print url
-        for title in reversed(needDownloadTitles):
-            print title
+    #找出最新的章节内容连接
+    def getValidUrls(self, urls, lastUrl):
+        if (len(lastUrl) == 0):
+            return urls
+        validUrls = []
+        isNew = False
+        for urlIndex in urls:
+            if (urlIndex == lastUrl):
+                isNew = True
+                continue
+            if (isNew):
+                validUrls.append(urlIndex)
+                
+        return validUrls
         
-    def getLastUpdateData(self):
-        for index in reversed(self.urls):
-            url = '%s%s' %(self.baseUrl, index)
+    #获取指定章节连接的内容
+    def getAllContentWithUrls(self, baseUrl, urls):
+        for urlIndex in urls:
+            url = '%s%s' % (baseUrl, urlIndex)
             html = self.getDataFromUrl(url)
             soup = BeautifulSoup(html, 'lxml')
             self.saveData(soup)
-            
+
     def getDataFromUrl(self, url):
         req = urllib2.Request(url)
         response = urllib2.urlopen(req)
@@ -102,11 +106,11 @@ class XiaoShuoCatch:
         return content
 
 spider = XiaoShuoCatch()
-spider.getLastUpdateUrls()
-spider.printLastUpdateInfo()
-spider.makeADicisionForDownload()
-spider.getLastUpdateData()
-#spider.test()
+spider.checkAndDownload()
+#spider.getLastUpdateUrls()
+#spider.printLastUpdateInfo()
+#spider.makeADicisionForDownload()
+
 #spider.getChapterUrls()
 #spider.getAllDatas()
 
