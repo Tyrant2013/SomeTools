@@ -14,6 +14,7 @@ class XiaoShuoCatch:
         self.infoFileName = 'xiao_shuo_update_info.txt'
         self.loadInfo()
 
+    #加载配置文件
     def loadInfo(self):
         if (os.path.exists(self.infoFileName)):
             lastUpdateInfoFile = open(self.infoFileName, 'r')
@@ -21,21 +22,23 @@ class XiaoShuoCatch:
             lastUpdateInfoFile.close()
         else:
             self.updateInfo = {}
-
+    
+    #更新配置文件
     def updateInfoWithNew(self, novelInfo):
         self.updateInfo[novelInfo['novelKey']] = novelInfo
         file_handler = open(self.infoFileName, 'w')
         json.dump(self.updateInfo, file_handler)
         file_handler.close()
 
+    #检查下载
     def checkAndDownload(self):
         for (key, val) in self.updateInfo.items():
-            fileName = val['name']
+            fileName = val['name'].encode('utf-8')
             baseUrl = val['baseUrl']
             lastUrl = val['lastUrl']
             chapterUrls = self.getChapterUrls(baseUrl)
             updateUrls = self.getValidUrls(chapterUrls, lastUrl)
-            print '只找到%s章, 最新章节有%s章' %(len(chapterUrls), len(updateUrls))
+            print '[%s]共找到%s章, 最新章节有%s章' %(fileName, len(chapterUrls), len(updateUrls))
             if (len(updateUrls)):
                 self.getAllContentWithUrls(baseUrl, updateUrls)
                 val['lastUrl'] = updateUrls[-1]
