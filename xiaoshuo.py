@@ -40,7 +40,7 @@ class XiaoShuoCatch:
             updateUrls = self.getValidUrls(chapterUrls, lastUrl)
             print '[%s]共找到%s章, 最新章节有%s章' %(fileName, len(chapterUrls), len(updateUrls))
             if (len(updateUrls)):
-                self.getAllContentWithUrls(baseUrl, updateUrls)
+                self.getAllContentWithUrls(baseUrl, updateUrls, fileName)
                 val['lastUrl'] = updateUrls[-1]
                 self.updateInfoWithNew(val)
 
@@ -75,12 +75,12 @@ class XiaoShuoCatch:
         return validUrls
         
     #获取指定章节连接的内容
-    def getAllContentWithUrls(self, baseUrl, urls):
+    def getAllContentWithUrls(self, baseUrl, urls, fileName):
         for urlIndex in urls:
             url = '%s%s' % (baseUrl, urlIndex)
             html = self.getDataFromUrl(url)
             soup = BeautifulSoup(html, 'lxml')
-            self.saveData(soup)
+            self.saveData(soup, fileName)
 
     def getDataFromUrl(self, url):
         req = urllib2.Request(url)
@@ -88,10 +88,10 @@ class XiaoShuoCatch:
         html = response.read().decode('utf-8')
         return html
 
-    def saveData(self, soup):
+    def saveData(self, soup, fileName):
         title = self.find_title(soup)
         content = self.find_content(soup)
-        with open('异常生物见闻录.txt', 'a') as f:
+        with open('%s.txt' % fileName, 'a') as f:
             f.write(title.encode('utf-8'))
             for stri in content.contents:
                 pos = stri.find('br')
