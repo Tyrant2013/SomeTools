@@ -5,6 +5,9 @@ from bs4 import BeautifulSoup
 import json
 import os
 import re
+import sys
+import StringIO
+import gzip
 
 class XiaoShuoCatch:
 
@@ -38,7 +41,7 @@ class XiaoShuoCatch:
             lastUrl = val['lastUrl']
             chapterUrls = self.getChapterUrls(baseUrl)
             updateUrls = self.getValidUrls(chapterUrls, lastUrl)
-            print '[%s]共找到%s章, 最新章节有%s章' %(fileName, len(chapterUrls), len(updateUrls))
+            print u'[%s]共找到%s章, 最新章节有%s章'.encode('utf-8') %(fileName, len(chapterUrls), len(updateUrls))
             if (len(updateUrls)):
                 self.getAllContentWithUrls(baseUrl, updateUrls, fileName)
                 val['lastUrl'] = updateUrls[-1]
@@ -47,8 +50,17 @@ class XiaoShuoCatch:
     #获取全部章节链接
     def getChapterUrls(self, baseUrl):
         req = urllib2.Request(baseUrl)
-        response = urllib2.urlopen(req)
-        html = response.read().decode('utf-8')
+        opener = urllib2.build_opener()
+        response = opener.open(req)
+        isGzip = response.headers.get('Content-Encoding')
+        html = ''
+        if isGzip:
+            compressedData = response.read()
+            compressedStream = StringIO.StringIO(compressedData)
+            gzipper = gzip.GzipFile(fileobj=compressedStream)
+            html = gzipper.read()
+        else:
+            html = response.read().decode('utf-8')
         soup = BeautifulSoup(html, 'lxml')
         datas = soup.find_all('dt')[1].next_siblings
         allUrls = []
@@ -84,8 +96,16 @@ class XiaoShuoCatch:
 
     def getDataFromUrl(self, url):
         req = urllib2.Request(url)
-        response = urllib2.urlopen(req)
-        html = response.read().decode('utf-8')
+        opener = urllib2.build_opener()
+        response = opener.open(req)
+        isGzip = response.headers.get('Content-Encoding')
+        if isGzip:
+            compressedData = response.read()
+            compressedStream = StringIO.StringIO(compressedData)
+            gziper = gzip.GzipFile(fileobj=compressedStream)
+            html = gziper.read()
+        else:
+            html = response.read().decode('utf-8')
         return html
 
     def saveData(self, soup, fileName):
@@ -97,8 +117,8 @@ class XiaoShuoCatch:
                 pos = stri.find('br')
                 if pos == -1:
                     f.write(stri.encode('utf-8') + '\n')
-            f.write('=========================== 我是分隔线 =============================== \n')
-        print ' =========== 完成章节 %s 的下载 =============== ' %title.encode('utf-8')
+            f.write(u'=========================== 我是分隔线 =============================== \n'.encode('utf-8'))
+        print u' =========== 完成章节 %s 的下载 =============== '.encode('utf-8') %title.encode('utf-8')
         
     def find_title(self, soup):
         title = soup.find('h1').contents[0]

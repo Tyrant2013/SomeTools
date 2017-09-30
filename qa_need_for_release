@@ -6,6 +6,11 @@
 #hahahahahahahhahahaha
 #cd ~/iOSProjects/AutoLearning
 #xcrun agvtool next-version -all
+cd ~/Desktop/AutoLearning_Archive
+rm -rf ForQARelease.xcarchive
+cd ~/Desktop/AutoLearning_IPA
+rm -rf ForQARelease.ipa
+
 data="正式库测试版本"
 #for line in `cat ~/Desktop/changeLog.txt`
 #do
