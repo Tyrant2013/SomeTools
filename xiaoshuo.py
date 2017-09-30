@@ -49,18 +49,7 @@ class XiaoShuoCatch:
 
     #获取全部章节链接
     def getChapterUrls(self, baseUrl):
-        req = urllib2.Request(baseUrl)
-        opener = urllib2.build_opener()
-        response = opener.open(req)
-        isGzip = response.headers.get('Content-Encoding')
-        html = ''
-        if isGzip:
-            compressedData = response.read()
-            compressedStream = StringIO.StringIO(compressedData)
-            gzipper = gzip.GzipFile(fileobj=compressedStream)
-            html = gzipper.read()
-        else:
-            html = response.read().decode('utf-8')
+        html = self.getDataFromUrl(baseUrl)
         soup = BeautifulSoup(html, 'lxml')
         datas = soup.find_all('dt')[1].next_siblings
         allUrls = []
