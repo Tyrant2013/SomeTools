@@ -1,0 +1,92 @@
+#!/bin/bash
+#build and upload for QA....
+#
+#make by zhuangxiaowei_dev@163.com
+#
+#hahahahahahahhahahaha
+
+archivePath="$HOME/Desktop/AutoLearning_Archive"
+archiveFile="ForQA.xcarchive"
+ipaPath="$HOME/Desktop/AutoLearning_IPA"
+ipaFile="ForQA.ipa"
+projectPath="$HOME/iOSProjects/AutoLearning"
+ipaExportOptionsPlist="$ipaPath/options.plist"
+firToken="08ac5648ec2638bd11fc1e3e173951af"
+appName="测试库版本"
+scheme="ForQA"
+conf="Debug"
+
+if [ $1 -eq 1 ]
+then
+    echo "=================== 正式库安装包 ==================="
+    archiveFile="ForQARelease.xcarchive"
+    ipaFile="ForQARelease.ipa"
+    appName="正式库版本"
+    scheme="ForQARelease"
+    conf="Release"
+else
+    echo "=================== 测试库安装包 ===================="
+fi
+
+ipaArchiveFilePath="$archivePath/$archiveFile"
+publicIpaPath="$ipaPath/$ipaFile"
+
+#删除上次生成的ipa包
+rm -rf $publicIpaPath
+rm -rf $ipaArchiveFilePath
+
+#获取更新日志
+cd ~/Desktop
+data=""
+logFile="changeLog.txt"
+if [ -s "${logFile}" ]
+then
+    for line in `cat ${logFile}`
+    do
+        data="$data$line<br />"
+    done
+    echo $data
+    if [ -z "$data" ]
+    then
+        echo "输入修改内容"
+        exit 1
+    fi
+else
+    echo "没有找到${logFile} 文件" 
+    exit 1
+fi
+
+#打包并上传
+cd $projectPath 
+xcodebuild clean
+xcodebuild -workspace AutoLearning.xcworkspace -scheme $scheme -configuration $conf -archivePath $ipaArchiveFilePath archive 
+cd $archivePath 
+if [ -e "$archiveFile" ]
+then
+    cd $projectPath
+    xcodebuild -exportArchive -archivePath $ipaArchiveFilePath -exportOptionsPlist $ipaExportOptionsPlist -exportPath $ipaPath
+
+    cd $ipaPath
+    if [ -e "$ipaFile" ]
+    then
+        fir publish $publicIpaPath -T $firToken
+        
+        #更改版本号
+        cd $projectPath
+        xcrun agvtool next-version -all
+        #获取打包完成后的包名,然后向测试人员发送邮件
+        cd ~/Tools
+        python vemail.py $appName $data
+        echo $appName
+        echo $data
+        #打包成功后清空文件
+        cd ~/Desktop
+        echo "" > $logFile
+        echo "=====================打包完成==================="
+    else
+        echo "=====================打包打败==================="
+    fi
+else
+    echo "打包失败"
+fi
+

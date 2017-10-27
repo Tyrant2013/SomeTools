@@ -122,7 +122,3 @@ spider.checkAndDownload()
 #spider.getLastUpdateUrls()
 #spider.printLastUpdateInfo()
 #spider.makeADicisionForDownload()
-
-#spider.getChapterUrls()
-#spider.getAllDatas()
-
