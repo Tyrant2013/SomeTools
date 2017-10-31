@@ -5,6 +5,7 @@
 #
 #hahahahahahahhahahaha
 
+changeLog="$HOME/Desktop/changeLog.txt"
 archivePath="$HOME/Desktop/AutoLearning_Archive"
 archiveFile="ForQA.xcarchive"
 ipaPath="$HOME/Desktop/AutoLearning_IPA"
@@ -31,57 +32,81 @@ fi
 ipaArchiveFilePath="$archivePath/$archiveFile"
 publicIpaPath="$ipaPath/$ipaFile"
 
-#删除上次生成的ipa包
+if [ -e $changeLog ]
+then
+    rm -rf $changeLog
+else
+    touch $changeLog
+    echo "创建$changeLog文件"
+fi
+
+echo "输入本次发包修改的内容:"
+read inputData
+while [ "$inputData"x != 'q'x ]
+do
+    emailData="$emailData$inputData<br>"
+    echo $inputData >> $changeLog
+    read inputData
+done
+
+if [ -z "$emailData" ]
+then 
+    echo "修改内容不能为空"
+    exit 1
+fi
+
+#删除上次打包生成的文件
 rm -rf $publicIpaPath
 rm -rf $ipaArchiveFilePath
 
 #获取更新日志
-cd ~/Desktop
-data=""
-logFile="changeLog.txt"
-if [ -s "${logFile}" ]
-then
-    for line in `cat ${logFile}`
-    do
-        data="$data$line<br />"
-    done
-    echo $data
-    if [ -z "$data" ]
-    then
-        echo "输入修改内容"
-        exit 1
-    fi
-else
-    echo "没有找到${logFile} 文件" 
-    exit 1
-fi
+#cd ~/Desktop
+#data=""
+#logFile="changeLog.txt"
+#if [ -s "${logFile}" ]
+#then
+#    for line in `cat ${logFile}`
+#    do
+#        data="$data$line<br>"
+#    done
+#    echo $data
+#    if [ -z "$data" ]
+#    then
+#        echo "输入修改内容"
+#        exit 1
+#    fi
+#else
+#    echo "没有找到${logFile} 文件" 
+#    exit 1
+#fi
 
 #打包并上传
 cd $projectPath 
-xcodebuild clean
-xcodebuild -workspace AutoLearning.xcworkspace -scheme $scheme -configuration $conf -archivePath $ipaArchiveFilePath archive 
+echo "清理项目中......"
+xcodebuild clean -quiet
+echo "Archiving......"
+xcodebuild -workspace AutoLearning.xcworkspace -scheme $scheme -configuration $conf -archivePath $ipaArchiveFilePath archive -quiet
 cd $archivePath 
 if [ -e "$archiveFile" ]
 then
     cd $projectPath
-    xcodebuild -exportArchive -archivePath $ipaArchiveFilePath -exportOptionsPlist $ipaExportOptionsPlist -exportPath $ipaPath
+    echo "导出ipa包......"
+    xcodebuild -exportArchive -archivePath $ipaArchiveFilePath -exportOptionsPlist $ipaExportOptionsPlist -exportPath $ipaPath -quiet
 
     cd $ipaPath
     if [ -e "$ipaFile" ]
     then
-        fir publish $publicIpaPath -T $firToken
+        echo "上传fir平台中......"
+        fir publish $publicIpaPath -T $firToken --changelog="$changeLog"
         
         #更改版本号
         cd $projectPath
+        echo "修改build号......"
         xcrun agvtool next-version -all
         #获取打包完成后的包名,然后向测试人员发送邮件
         cd ~/Tools
-        python vemail.py $appName $data
-        echo $appName
-        echo $data
-        #打包成功后清空文件
-        cd ~/Desktop
-        echo "" > $logFile
+        echo "向相关人员发送邮件......"
+        python vemail.py $appName $emailData
         echo "=====================打包完成==================="
     else
         echo "=====================打包打败==================="

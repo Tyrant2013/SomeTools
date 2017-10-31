@@ -31,8 +31,6 @@ def sendemail(appName, content):
 
 name = sys.argv[1]
 content = ''.join(sys.argv[2:])
-print name
-print content
 if name == None:
     name = '测试版本更新'
 if content == None:
