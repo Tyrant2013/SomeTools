@@ -35,14 +35,14 @@ publicIpaPath="$ipaPath/$ipaFile"
 if [ -e $changeLog ]
 then
     rm -rf $changeLog
-else
-    touch $changeLog
-    echo "创建$changeLog文件"
+#else
+#    touch $changeLog
+#    echo "创建$changeLog文件"
 fi
 
-echo "输入本次发包修改的内容:"
+echo "输入本次发包修改的内容(输入'q'或'Q'结束):"
 read inputData
-while [ "$inputData"x != 'q'x ]
+while [ "$inputData"x != "q"x -a "$inputData"x != "Q"x ] 
 do
     emailData="$emailData$inputData<br>"
     echo $inputData >> $changeLog
