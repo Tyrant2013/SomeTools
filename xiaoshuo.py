@@ -43,8 +43,9 @@ class XiaoShuoCatch:
             updateUrls = self.getValidUrls(chapterUrls, lastUrl)
             print u'[%s]共找到%s章, 最新章节有%s章'.encode('utf-8') %(fileName, len(chapterUrls), len(updateUrls))
             if (len(updateUrls)):
-                self.getAllContentWithUrls(baseUrl, updateUrls, fileName)
-                val['lastUrl'] = updateUrls[-1]
+                res = self.getAllContentWithUrls(baseUrl, updateUrls, fileName)
+                #val['lastUrl'] = updateUrls[-1]
+                val['lastUrl'] = res[1]
                 self.updateInfoWithNew(val)
 
     #获取全部章节链接
@@ -77,24 +78,37 @@ class XiaoShuoCatch:
         
     #获取指定章节连接的内容
     def getAllContentWithUrls(self, baseUrl, urls, fileName):
+        isError = False
+        lastUrl = ""
         for urlIndex in urls:
             url = '%s%s' % (baseUrl, urlIndex)
             html = self.getDataFromUrl(url)
+            if (html.strip() == ""):
+                isError = True
+                break;
+            lastUrl = url
             soup = BeautifulSoup(html, 'lxml')
             self.saveData(soup, fileName)
+        return (isError, lastUrl)
 
     def getDataFromUrl(self, url):
         req = urllib2.Request(url)
         opener = urllib2.build_opener()
-        response = opener.open(req)
-        isGzip = response.headers.get('Content-Encoding')
-        if isGzip:
-            compressedData = response.read()
-            compressedStream = StringIO.StringIO(compressedData)
-            gziper = gzip.GzipFile(fileobj=compressedStream)
-            html = gziper.read()
-        else:
-            html = response.read().decode('utf-8')
+        html = ""
+        try:
+            response = opener.open(req)
+            isGzip = response.headers.get('Content-Encoding')
+            if isGzip:
+                compressedData = response.read()
+                compressedStream = StringIO.StringIO(compressedData)
+                gziper = gzip.GzipFile(fileobj=compressedStream)
+                html = gziper.read()
+            else:
+                html = response.read().decode('utf-8')
+        except urllib2.HTTPError, e:
+            print u"================== 出错啦：%s".encode('utf-8') %url
+            print e.code
+            print e.read()
         return html
 
     def saveData(self, soup, fileName):
