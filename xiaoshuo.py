@@ -86,7 +86,7 @@ class XiaoShuoCatch:
             if (html.strip() == ""):
                 isError = True
                 break;
-            lastUrl = url
+            lastUrl = urlIndex
             soup = BeautifulSoup(html, 'lxml')
             self.saveData(soup, fileName)
         return (isError, lastUrl)
