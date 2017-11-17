@@ -1,0 +1,32 @@
+#!/bin/bash
+oriDirectory="$HOME/iOSProjects/AutoLearning"
+moveFiles="$oriDirectory/*"
+destDirectory="$HOME/iOSProjects/svn/iOS/AutoLearning/"
+#destDirectory="$HOME/iOSProjects/Test/AutoLearning/"
+
+echo '复制'$oriDirectory '到' $destDirectory 
+cp -Rf $moveFiles $destDirectory
+
+echo '进入'$destDirectory
+cd $destDirectory
+
+echo '删除build/'
+rm -rf build/
+
+echo '删除fastlane'
+rm -rf fastlane/
+
+echo '删除路上读书.ipa'
+rm -rf 路上读书.ipa
+
+echo '删除README.md'
+rm -rf README.md
+
+echo '删除路上读书.app.dSYM.zip'
+rm -rf 路上读书.app.dSYM.zip
+
+echo 'svn update.'
+svn update
+
+echo '更新到svn'
+svn commit -m 'update'
