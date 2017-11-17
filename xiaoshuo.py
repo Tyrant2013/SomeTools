@@ -45,8 +45,9 @@ class XiaoShuoCatch:
             if (len(updateUrls)):
                 res = self.getAllContentWithUrls(baseUrl, updateUrls, fileName)
                 #val['lastUrl'] = updateUrls[-1]
-                val['lastUrl'] = res[1]
-                self.updateInfoWithNew(val)
+                if (val['lastUrl'].strip() != "" and res[1].strip() != ""):
+                    val['lastUrl'] = res[1]
+                    self.updateInfoWithNew(val)
 
     #获取全部章节链接
     def getChapterUrls(self, baseUrl):
