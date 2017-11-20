@@ -7,5 +7,6 @@ cd ~/Images
 
 svn update
 echo '切换回MacZhuanYong WIFI...'
+cd ~/Tools
 sh switchWIFI 0
 
