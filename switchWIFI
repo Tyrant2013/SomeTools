@@ -1,0 +1,12 @@
+#!/bin/bash
+
+wifiName="MacZhuanYong"
+pwd="AutoLearning167"
+if [ $1 -eq 1 ]
+then
+    wifiName="Editors2.4G"
+    pwd="AutoLearning168"
+fi
+
+networksetup -setairportnetwork en0 $wifiName $pwd
+

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo '切换到Editors的WIFI...'
+sh switchWIFI 1
+echo '从SVN更新设计图...'
+cd ~/Images
+
+svn update
+echo '切换回MacZhuanYong WIFI...'
+sh switchWIFI 0
+
