@@ -25,8 +25,15 @@ rm -rf README.md
 echo '删除路上读书.app.dSYM.zip'
 rm -rf 路上读书.app.dSYM.zip
 
+echo '切换到Editors WIFI'
+sh ~/Tools/switchWIFI 1 
+sleep 8
+
 echo 'svn update.'
 svn update
 
 echo '更新到svn'
 svn commit -m 'update'
+
+echo '切换到MacZhuanYong WIFI'
+sh ~/Tools/switchWIFI 0
