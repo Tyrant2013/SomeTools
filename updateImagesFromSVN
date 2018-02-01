@@ -2,6 +2,7 @@
 
 echo '切换到Editors的WIFI...'
 sh switchWIFI 1
+sleep 8
 echo '从SVN更新设计图...'
 cd ~/Images
 

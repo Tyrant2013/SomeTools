@@ -1,0 +1,13 @@
+#!/bin/bash
+
+sh buildAndUpload 2
+
+#publicIpaPath="$HOME/Desktop/AutoLearning_IPA/ForRelease.ipa"
+#
+#
+#cd
+#cd /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support
+#
+#ls
+#./altool --validate -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
+

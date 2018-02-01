@@ -16,6 +16,7 @@ firToken="08ac5648ec2638bd11fc1e3e173951af"
 appName="测试库版本"
 scheme="ForQA"
 conf="Debug"
+altool="$HOME/"
 
 if [ $1 -eq 1 ]
 then
@@ -24,6 +25,14 @@ then
     ipaFile="ForQARelease.ipa"
     appName="正式库版本"
     scheme="ForQARelease"
+    conf="Release"
+elif [ $1 -eq 2 ]
+then
+    echo "=================== 上传AppStore ==================="
+    archiveFile="ForRelease.xcarchive"
+    ipaFile="ForRelease.ipa"
+    appName="路上读书"
+    scheme="ForRelease"
     conf="Release"
 else
     echo "=================== 测试库安装包 ===================="
@@ -96,9 +105,18 @@ then
     cd $ipaPath
     if [ -e "$ipaFile" ]
     then
-        echo "上传fir平台中......"
-        fir publish $publicIpaPath -T $firToken --changelog="$changeLog"
-        
+        if [ $1 -eq 2 ]
+        then
+            echo "==================== 开始上传AppStore ==================="
+            cd /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support
+            #验证 
+            #./altool --validate -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
+            #上传
+            ./altool --upload-app -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
+        else 
+            echo "上传fir平台中......"
+            fir publish $publicIpaPath -T $firToken --changelog="$changeLog"
+        fi 
         #更改版本号
         cd $projectPath
         echo "修改build号......"
