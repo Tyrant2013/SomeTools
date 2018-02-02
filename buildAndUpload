@@ -49,7 +49,7 @@ if [ ! -d $bkDir ];then
     re=`mkdir $bkDir`
     echo "创建目录 ${bkDir} 成功"
     echo "打包过程生成的文件都会放在这里，同时算是一个备份"
-    echo "ForQA为开发环境的测试包，ForQARelease为生产环境的测试包，ForRelease为上传ITunesconnect的正式包"
+    echo "ForQA为开发环境的测试包，ForQARelease为生产环境的测试包，ForRelease为上传ITunes Connect的正式包"
     echo "如果打包过程中一些文件已经存在，会跳过该步骤，进入下一步"
     echo "导出IPA成功后，无论上传成功还是失败都会修改工程的Build号，所以只是重新上传的话，可以到目录里手动上传"
     echo "本脚本还不是很完善，有待修改"
