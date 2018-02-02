@@ -6,17 +6,17 @@
 #hahahahahahahhahahaha
 
 changeLog="$HOME/Desktop/changeLog.txt"
-archivePath="$HOME/Desktop/AutoLearning_Archive"
+#archivePath="$HOME/Desktop/AutoLearning_Archive"
 archiveFile="ForQA.xcarchive"
 ipaPath="$HOME/Desktop/AutoLearning_IPA"
 ipaFile="ForQA.ipa"
 projectPath="$HOME/iOSProjects/AutoLearning"
-ipaExportOptionsPlist="$ipaPath/options.plist"
+ipaExportOptionsPlist="$ipaPath/adhoc.plist"
 firToken="08ac5648ec2638bd11fc1e3e173951af"
 appName="测试库版本"
 scheme="ForQA"
 conf="Debug"
-altool="$HOME/"
+infoPlistPath="$projectPath/AutoLearning/info.plist"
 
 if [ $1 -eq 1 ]
 then
@@ -34,20 +34,41 @@ then
     appName="路上读书"
     scheme="ForRelease"
     conf="Release"
+    ipaExportOptionsPlist="$ipaPath/appstore.plist"
 else
     echo "=================== 测试库安装包 ===================="
 fi
 
-ipaArchiveFilePath="$archivePath/$archiveFile"
-publicIpaPath="$ipaPath/$ipaFile"
+appVer=`/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' $infoPlistPath`
+appBuildVer=`/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' $infoPlistPath`
+bkDir="${ipaPath}/bk_${appVer}_$appBuildVer"
+echo $appVer
+echo $appBuildVer
+echo $bkDir
+if [ ! -d $bkDir ];then
+    re=`mkdir $bkDir`
+    echo "创建目录 ${bkDir} 成功"
+    echo "打包过程生成的文件都会放在这里，同时算是一个备份"
+    echo "ForQA为开发环境的测试包，ForQARelease为生产环境的测试包，ForRelease为上传ITunesconnect的正式包"
+    echo "如果打包过程中一些文件已经存在，会跳过该步骤，进入下一步"
+    echo "导出IPA成功后，无论上传成功还是失败都会修改工程的Build号，所以只是重新上传的话，可以到目录里手动上传"
+    echo "本脚本还不是很完善，有待修改"
+fi
+archivePath=$bkDir
+ipaArchiveFilePath="$bkDir/$archiveFile"
+publicIpaPath="$bkDir/$ipaFile"
+ipaPath=$bkDir
+echo "archivePath: $archivePath"
+echo "archiveFilePath: $ipaArchiveFilePath"
+echo "publicIpaPath: $publicIpaPath"
+echo "iapPath: $ipaPath"
 
-if [ -e $changeLog ]
-then
-    rm -rf $changeLog
+#if [ -e $changeLog ];then
+#    rm -rf $changeLog
 #else
 #    touch $changeLog
 #    echo "创建$changeLog文件"
-fi
+#fi
 
 echo "输入本次发包修改的内容(输入'q'或'Q'结束):"
 read inputData
@@ -63,10 +84,6 @@ then
     echo "修改内容不能为空"
     exit 1
 fi
-
-#删除上次打包生成的文件
-rm -rf $publicIpaPath
-rm -rf $ipaArchiveFilePath
 
 #获取更新日志
 #cd ~/Desktop
@@ -89,47 +106,150 @@ rm -rf $ipaArchiveFilePath
 #    exit 1
 #fi
 
-#打包并上传
-cd $projectPath 
-echo "清理项目中......"
-xcodebuild clean -quiet
-echo "Archiving......"
-xcodebuild -workspace AutoLearning.xcworkspace -scheme $scheme -configuration $conf -archivePath $ipaArchiveFilePath archive -quiet
-cd $archivePath 
-if [ -e "$archiveFile" ]
-then
-    cd $projectPath
+#编译并导出.archive 文件
+function func_buildAndArchive() {
+    cd $projectPath 
+    echo "清理项目中......"
+    xcodebuild clean -quiet
+    echo "Archiving......"
+    xcodebuild -workspace AutoLearning.xcworkspace -scheme $scheme -configuration $conf -archivePath $ipaArchiveFilePath archive -quiet
+}
+
+#导出.ipa 文件
+function func_packToIPA() {
     echo "导出ipa包......"
     xcodebuild -exportArchive -archivePath $ipaArchiveFilePath -exportOptionsPlist $ipaExportOptionsPlist -exportPath $ipaPath -quiet
+}
 
-    cd $ipaPath
-    if [ -e "$ipaFile" ]
-    then
-        if [ $1 -eq 2 ]
-        then
-            echo "==================== 开始上传AppStore ==================="
-            cd /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support
-            #验证 
-            #./altool --validate -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
-            #上传
-            ./altool --upload-app -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
-        else 
-            echo "上传fir平台中......"
-            fir publish $publicIpaPath -T $firToken --changelog="$changeLog"
-        fi 
-        #更改版本号
-        cd $projectPath
-        echo "修改build号......"
-        xcrun agvtool next-version -all
-        #获取打包完成后的包名,然后向测试人员发送邮件
-        cd ~/Tools
-        echo "向相关人员发送邮件......"
-        python vemail.py $appName $emailData
-        echo "=====================打包完成==================="
+#发布
+function func_public() {
+    if [ $1 -eq 2 ];then
+        echo "上传AppStore......"
+        cd /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Sup    port
+        #验证 
+        #./altool --validate -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
+        #上传
+        ./altool --upload-app -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
+        return 1
     else
-        echo "=====================打包打败==================="
+        echo "上传fir平台中......"
+        fir publish $publicIpaPath -T $firToken --changelog="$changeLog"
+        return 1
     fi
-else
-    echo "打包失败"
+}
+
+#更新build号
+function func_updateVerNum() {
+    cd $projectPath
+    echo "修改build号......"
+    xcrun agvtool next-version -all
+    return 1
+}
+
+#发送邮件
+function func_sendEmail() {
+    cd ~/Tools
+    printf "向相关人员发送邮件......"
+    python vemail.py $appName $emailData
+    return 1
+}
+
+
+#检查和导出.archive 文件
+cd $archivePath
+if [ ! -e $archiveFile ];then
+    echo "${archiveFile} 文件不存在，开始打包"
+    func_buildAndArchive
 fi
+#sleep 3 
+#检查.archive 文件是否存在，不存在则认为导出失败
+#不cd一下会找不到文件，奇怪的问题
+cd $archivePath
+if [ ! -e $archiveFile ];then
+    echo "${archiveFile} 文件导出失败"
+    echo "自动发布脚本退出"
+    exit 1
+fi
+
+#检查和导出.ipa 文件
+if [ ! -e $ipaFile ];then
+    echo "${ipaFile} 文件不存在，开始导出"
+    func_packToIPA
+fi
+#检查.ipa文件是否存在，不存在则认为导出失败
+#和上面一样，不cd一下，也会找不到文件
+cd $ipaPath
+if [ ! -e $ipaFile ];then
+    echo "${ipaFile} 文件导出失败"
+    echo "自动发布脚本退出"
+    exit 1
+fi
+
+#上传
+func_public $1
+if [ $? -ne 1 ];then
+    echo "发布失败，脚本退出"
+    exit 1
+fi
+
+#更新Build号
+func_updateVerNum
+if [ $? -ne 1 ];then
+    echo "更新build号失败，脚本不会退出"
+fi
+
+#发邮件
+#func_sendEmail
+#if [ $? -ne 1 ];then
+#    echo "发送邮件失败，脚本跑完了，就这样吧"
+#fi
+
+echo "================== 打包完成 ======================"
+
+exit 1
+
+#cd $projectPath 
+#echo "清理项目中......"
+#xcodebuild clean -quiet
+#echo "Archiving......"
+#xcodebuild -workspace AutoLearning.xcworkspace -scheme $scheme -configuration $conf -archivePath $ipaArchiveFilePath archive -quiet
+#cd $archivePath 
+#if [ -e "$archiveFile" ]
+#then
+#    cd $projectPath
+#    echo "导出ipa包......"
+#    xcodebuild -exportArchive -archivePath $ipaArchiveFilePath -exportOptionsPlist $ipaExportOptionsPlist -exportPath $ipaPath -quiet
+#
+#    cd $ipaPath
+#    if [ -e "$ipaFile" ]
+#    then
+#        if [ $1 -eq 2 ]
+#        then
+#            echo "==================== 开始上传AppStore ==================="
+#            cd /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support
+#            #验证 
+#            #./altool --validate -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
+#            #上传
+#            ./altool --upload-app -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
+#        else 
+#            echo "上传fir平台中......"
+#            re=`fir publish $publicIpaPath -T $firToken --changelog="$changeLog"`
+#            echo "上传结果:"
+#            echo $re
+#        fi 
+#        #更改版本号
+#        cd $projectPath
+#        echo "修改build号......"
+#        xcrun agvtool next-version -all
+#        #获取打包完成后的包名,然后向测试人员发送邮件
+#        cd ~/Tools
+#        echo "向相关人员发送邮件......"
+#        #python vemail.py $appName $emailData
+#        echo "=====================打包完成==================="
+#    else
+#        echo "=====================打包打败==================="
+#    fi
+#else
+#    echo "打包失败"
+#fi
 
