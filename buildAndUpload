@@ -70,19 +70,21 @@ echo "iapPath: $ipaPath"
 #    echo "创建$changeLog文件"
 #fi
 
-echo "输入本次发包修改的内容(输入'q'或'Q'结束):"
-read inputData
-while [ "$inputData"x != "q"x -a "$inputData"x != "Q"x ] 
-do
-    emailData="$emailData$inputData<br>"
-    echo $inputData >> $changeLog
+if [ $1 -eq 0 -o $1 -eq 1 ];then
+    echo "输入本次发包修改的内容(输入'q'或'Q'结束):"
     read inputData
-done
-
-if [ -z "$emailData" ]
-then 
-    echo "修改内容不能为空"
-    exit 1
+    while [ "$inputData"x != "q"x -a "$inputData"x != "Q"x ] 
+    do
+        emailData="$emailData$inputData<br>"
+        echo $inputData >> $changeLog
+        read inputData
+    done
+    
+    if [ -z "$emailData" ]
+    then 
+        echo "修改内容不能为空"
+        exit 1
+    fi
 fi
 
 #获取更新日志
@@ -118,14 +120,14 @@ function func_buildAndArchive() {
 #导出.ipa 文件
 function func_packToIPA() {
     echo "导出ipa包......"
-    xcodebuild -exportArchive -archivePath $ipaArchiveFilePath -exportOptionsPlist $ipaExportOptionsPlist -exportPath $ipaPath -quiet
+    xcodebuild -exportArchive -archivePath $ipaArchiveFilePath -exportOptionsPlist $ipaExportOptionsPlist -exportPath $ipaPath -allowProvisioningUpdates -quiet
 }
 
 #发布
 function func_public() {
     if [ $1 -eq 2 ];then
         echo "上传AppStore......"
-        cd /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Sup    port
+        cd /Applications/Xcode.app/Contents/Applications/Application\ Loader.app/Contents/Frameworks/ITunesSoftwareService.framework/Versions/A/Support
         #验证 
         #./altool --validate -f $publicIpaPath -u 314122537@qq.com -p bwcm-qypv-iryo-ddhb --output-format xml
         #上传
