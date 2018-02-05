@@ -42,9 +42,9 @@ fi
 appVer=`/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' $infoPlistPath`
 appBuildVer=`/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' $infoPlistPath`
 bkDir="${ipaPath}/bk_${appVer}_$appBuildVer"
-echo $appVer
-echo $appBuildVer
-echo $bkDir
+echo "应用版本号：$appVer"
+echo "应用Build号：$appBuildVer"
+echo "打包目录：$bkDir"
 if [ ! -d $bkDir ];then
     re=`mkdir $bkDir`
     echo "创建目录 ${bkDir} 成功"
