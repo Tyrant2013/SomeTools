@@ -136,6 +136,7 @@ function func_public() {
     else
         echo "上传fir平台中......"
         fir publish $publicIpaPath -T $firToken --changelog="$changeLog"
+        echo "" > $changeLog
         return 1
     fi
 }
@@ -200,11 +201,13 @@ if [ $? -ne 1 ];then
     echo "更新build号失败，脚本不会退出"
 fi
 
-#发邮件
-#func_sendEmail
-#if [ $? -ne 1 ];then
-#    echo "发送邮件失败，脚本跑完了，就这样吧"
-#fi
+if [ $1 -eq 1 -o $1 -eq 0 ];then
+    #发邮件
+    func_sendEmail
+    if [ $? -ne 1 ];then
+        echo "发送邮件失败，脚本跑完了，就这样吧"
+    fi
+fi
 
 echo "================== 打包完成 ======================"
 
