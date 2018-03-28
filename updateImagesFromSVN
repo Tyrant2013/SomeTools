@@ -7,7 +7,6 @@ echo '从SVN更新设计图...'
 cd ~/Images
 
 svn update
-oepn .
 echo '切换回MacZhuanYong WIFI...'
 cd ~/Tools
 sh switchWIFI 0
