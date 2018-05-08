@@ -1,34 +1,28 @@
 #!/bin/bash
 
-tmpDirectory="/work/tmp/"
-resignProvisionFile="/work/ResignAppFiles/iRegign.mobileprovision"
-payloadPath="${tmpDirectory}Payload"
-entitleFilePath="/work/ResignAppFiles/entitlements.plist"
-plistBuddy="/usr/libexec/PlistBuddy"
-originFile="$1"
-resignedFile="${originFile%.*}-resigned.ipa"
-certificationName="iPhone Distribution: HA Youmi INC"
+TmpDirectory="/work/tmp/"
+ResignProvisionFile="/work/ResignAppFiles/iRegign.mobileprovision"
+PayloadPath="${TmpDirectory}Payload"
+PlistBuddy="/usr/libexec/PlistBuddy"
+OriginFile="$1"
+ResignedFile="${OriginFile%.*}-resigned.ipa"
+CertificationName="iPhone Distribution: HA Youmi INC"
 
-if [ -f "$resignedFile" ]; then
+if [ -f "$ResignedFile" ]; then
     echo "find old resigned file, will delete it!"
-    rm -rf "$resignedFile"
+    rm -rf "$ResignedFile"
 fi
 
-if [ -d $tmpDirectory ]; then 
+if [ -d $TmpDirectory ]; then 
     echo "find tmp directory, will delete it!"
-    rm -rf $tmpDirectory
-fi
-
-if [ -d $payloadPath ]; then
-    echo "Payload directory is exists, delete it!"
-    rm -rf $payloadPath
+    rm -rf $TmpDirectory
 fi
 
 #解压ipa包, 生成Payload文件夹
-unzip -qo "$1" -d $tmpDirectory
+unzip -qo "$1" -d $TmpDirectory
 
-appPath=`ls $payloadPath`
-resignAppPath="${payloadPath}/${appPath}"
+appPath=`ls $PayloadPath`
+resignAppPath="${PayloadPath}/${appPath}"
 #Info.plist文件路径
 infoPath="${resignAppPath}/Info.plist"
 codeSignaturePath="${resignAppPath}/_CodeSignature"
@@ -38,14 +32,14 @@ rm -rf $codeSignaturePath
 embeddedProvisionFile="${resignAppPath}/embedded.mobileprovision"
 
 #替换embedded.mobileprovision
-cp "$resignProvisionFile" "$embeddedProvisionFile"
+cp "$ResignProvisionFile" "$embeddedProvisionFile"
 
 #**********************需要修改application-identifier为新的BundleId**************#
-fullEntitlesFile="${tmpDirectory}entitlements_full.plist"
-targetEntitleFile="${tmpDirectory}entitlements.plist"
+fullEntitlesFile="${TmpDirectory}entitlements_full.plist"
+targetEntitleFile="${TmpDirectory}entitlements.plist"
 
 security cms -D -i "$embeddedProvisionFile" > $fullEntitlesFile
-$plistBuddy -x -c 'Print:Entitlements' $fullEntitlesFile > $targetEntitleFile
+$PlistBuddy -x -c 'Print:Entitlements' $fullEntitlesFile > $targetEntitleFile
 
 fileName=${appPath%.*}
 
@@ -54,28 +48,28 @@ fileName=${appPath%.*}
 ###如果同一个包打包时, 前一次application-identifier设置的是通配符(*), 那后一次这里设置了application-identifier的话, 安装会失败!!!!
 ###反之亦然
 #获取要重打包应用的BundleId
-bundleId=$($plistBuddy -c "Print :CFBundleIdentifier" "$infoPath")
-teamId=$($plistBuddy -c "Print :com.apple.developer.team-identifier" "$targetEntitleFile")
+bundleId=$($PlistBuddy -c "Print :CFBundleIdentifier" "$infoPath")
+teamId=$($PlistBuddy -c "Print :com.apple.developer.team-identifier" "$targetEntitleFile")
 targetBundleId="$teamId.$bundleId"
-$plistBuddy -c "Set :application-identifier $targetBundleId" "$targetEntitleFile"
-$plistBuddy -c "Delete :com.apple.developer.team-identifier" "$targetEntitleFile"
-$plistBuddy -c "Delete :keychain-access-groups" "$targetEntitleFile"
+$PlistBuddy -c "Set :application-identifier $targetBundleId" "$targetEntitleFile"
+$PlistBuddy -c "Delete :com.apple.developer.team-identifier" "$targetEntitleFile"
+$PlistBuddy -c "Delete :keychain-access-groups" "$targetEntitleFile"
 
-find -d "$tmpDirectory"  \( -name "*.app" -o -name "*.appex" -o -name "*.framework" -o -name "*.dylib" \) > "${tmpDirectory}needCodeSigns.txt"
+find -d "$TmpDirectory"  \( -name "*.app" -o -name "*.appex" -o -name "*.framework" -o -name "*.dylib" \) > "${TmpDirectory}needCodeSigns.txt"
 
 while IFS='' read -r line || [[ -n "$line" ]]; do
-    codesign --continue -f -s "$certificationName" --entitlements="$targetEntitleFile" "$line"
-done < "${tmpDirectory}needCodeSigns.txt"
+    codesign --continue -f -s "$CertificationName" --entitlements="$targetEntitleFile" "$line"
+done < "${TmpDirectory}needCodeSigns.txt"
 
 #压缩Payload并改后缀为ipa
-cd "$tmpDirectory"
-zip -qry ab.ipa "Payload"
-mv ab.ipa "$resignedFile"
+cd "$TmpDirectory"
+zip -qry "$ResignedFile" "Payload"
+# mv ab.ipa "$ResignedFile"
 
 ### 这下面这行代码打包出来的怎么就不能安装了!!!!!!!
-### (花一个下午终于发现)下面这行代码不能打包成功, 是因为会把Payload上一整个路径打包进去!!!! $payloadPath是/work/tmp/Payload 打包完成再解压不是Payload文件夹, 是/work/tmp/Payload!!!!!!!
-# zip -qry "$resignedFile" "$payloadPath"
+### (花一个下午终于发现)下面这行代码不能打包成功, 是因为会把Payload上一整个路径打包进去!!!! $PayloadPath是/work/tmp/Payload 打包完成再解压不是Payload文件夹, 是/work/tmp/Payload!!!!!!!
+# zip -qry "$ResignedFile" "$PayloadPath"
 
-echo "output file: $resignedFile"
+echo "output file: $ResignedFile"
 #扫尾
-rm -rf $tmpDirectory
+rm -rf $TmpDirectory
