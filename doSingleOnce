@@ -1,0 +1,14 @@
+#!/bin/bash
+
+Dir="$1"
+
+find -d "$Dir" -name *.ipa > files.txt
+
+while IFS='' read -r line || [[ -n "$line" ]]; do
+    sh iWannaResignIPA "$line"
+    rm -rf "$line"
+done < files.txt
+
+rm -rf files.txt
+
+echo "all done!"
