@@ -1,0 +1,59 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then 
+    exit 1
+fi
+fileName=$1
+
+echo "************************** check in binary file **************************"
+echo ""
+
+while IFS='' read -r line || [[ -n "$line" ]]; do
+    echo "Checking keyword '$line' ..."
+    strings - -a "$fileName" | grep -ni $line
+done < keywords.txt
+
+echo ""
+echo "************************** binary file check done !!!! **************************"
+echo ""
+
+extern=${fileName##*.}
+if [ "$extern" = "a" ]; then
+    exit 1
+fi
+
+clsPath="dump_classes"
+if [[ -d "$clsPath" ]]; then
+    rm -rf "$clsPath"
+fi
+
+mkdir "$clsPath"
+
+class-dump -H -o "$clsPath" "$fileName"
+
+echo ""
+echo "************************** check in header file **************************"
+echo ""
+
+while IFS='' read -r line || [[ -n "$line" ]]; do
+    echo "Checking in header file for keyword '$line' ..."
+    find "${clsPath}/" | xargs grep -ri "$line" -n
+done < keywords.txt
+
+echo ""
+echo "************************** header file check done **************************"
+echo ""
+
+echo "************************** check in file name **************************"
+echo ""
+
+while IFS='' read -r line || [[ -n "$line" ]]; do
+    echo "Checking in file name for keyword '$line' ..."
+    find "${clsPath}/" -name "*$line*"
+done < keywords.txt
+
+echo ""
+echo "************************** file name check done **************************"
+echo ""
+
+echo "All done!"

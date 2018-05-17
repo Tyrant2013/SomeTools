@@ -73,3 +73,5 @@ zip -qry "$ResignedFile" "Payload"
 echo "output file: $ResignedFile"
 #扫尾
 rm -rf $TmpDirectory
+
+# ideviceinstaller -i "$ResignedFile"
