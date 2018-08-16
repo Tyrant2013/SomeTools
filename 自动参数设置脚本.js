@@ -66,10 +66,14 @@ function setConfig() {
     enable_pay.value = "1";
     proxyUrl.value = "unknown";
     var sdk = sdkId.value;
+    if (!chnId.value.startsWith(sdk)) {
+        chnId.value = sdk + "00001";
+    }
     urlObj.value = prefixUrl + urls[sdk] + "/" + gameShorName + "/" + chnId.value;
     sdkName.value = sdkNames[sdk];
     packageName.value = packageNames[sdk];
     serverSecret.value = serverSecrets[gameShorName];
+
     switch (sdk) {
         case "10019":
             opayType.value = "{\"zfb\":{\"enable\":1,\"discount\":100},\"zwxpay\":{\"enable\":1,\"discount\":100},\"zfb_wap\":{\"enable\":1,\"discount\":100},\"iap\":{\"enable\":0,\"discount\":100}}";
@@ -87,7 +91,8 @@ function setConfig() {
 
 chnId.addEventListener("change", function(){
     var urlObj = document.getElementsByName("url")[0];
-    urlObj.value = prefixUrl + urls[sdk] + "/" + chnId.value;;
+    var sdk = sdkId.value;
+    urlObj.value = prefixUrl + urls[sdk] + "/" + gameShorName + "/" + chnId.value;;
 });
 sdkId.addEventListener("change", function() {
     setTimeout(setConfig, 100);
@@ -96,4 +101,4 @@ chnId.value = "1001900001";
 sdkId.value = "10019";
 var ev = document.createEvent("HTMLEvents");  
 ev.initEvent("change", false, true);  
-sdkId.dispatchEvent(ev);  
+sdkId.dispatchEvent(ev);
