@@ -1,104 +1,107 @@
-var sdkName = document.getElementsByName("sdk_name")[0];
-var packageName = document.getElementsByName("package_name")[0];
-var proxyUrl = document.getElementsByName("proxy_url")[0];
-var chnId = document.getElementsByName("chn_id")[0];
-var sdkId = document.getElementsByName("sdk_id")[0];
-var statusObj = document.getElementsByName("status")[0];
-var enable_register = document.getElementsByName("enable_register")[0];
-var enable_pay = document.getElementsByName("enable_pay")[0];
-
-var gameShorName = window.location.host.split(".")[0];
-var prefixUrl = "http://fxcb.umipay.com/";
-var urls = {
-    "10019" : "opay_iap",
-    "10024" : "owpay_iap",
-    "10025" : "owpay_iap",
-};
-var sdkNames = {
-    "10019" : "iapopay",
-    "10024" : "owpay_iap",
-    "10025" : "h5",
-};
-var packageNames = {
-    "10019" : "xxx.iapopay",
-    "10024" : "xxx.ow",
-    "10025" : "xxx.h5",
-};
-var appKeys = {
-    "sghj" : "b780142b09f59a04",
-    "jdwx" : "8b1c0b73738d40b7",
-    "xyl" : "5b4c87a34471065f",
-    "dyly" : "",
-};
-var serverSecrets = {
-    "sghj" : "71207e5bda1f8d1d",
-    "jdwx" : "69da2a872ce86982",
-    "xyl" : "ff8396b03245e77f",
-    "dyly" : "",
-};
-var opaySecrets = {
-    "sghj" : "c3e459315a0a4a78",
-    "jdwx" : "ff8396b03245e77f",
-    "xyl" : "",
-    "dyly" : "8a8a80ffb1f051dd",
-};
-
-function setConfig() {
-    var dangerousVer = document.getElementsByName("DANGEROUS_PAY_VERSION")[0];
-    var payType = document.getElementsByName("paytype")[0];
-    var serverSecret = document.getElementsByName("server_secret")[0];
-    var urlObj = document.getElementsByName("url")[0];
-    var redPoint = document.getElementsByName("red_point")[0];
-
-    var appKey = document.getElementsByName("appkey")[0];
-    var owpayAES = document.getElementsByName("owpay_aeskey")[0];
-    var owpayType = document.getElementsByName("owpay_type")[0];
-    var payinfoSecret = document.getElementsByName("payinfo_secret")[0];
-
-    var opayType = document.getElementsByName("opay_type")[0];
-    var opaySecret = document.getElementsByName("opay_server_secret")[0];
-
-    redPoint.value = "1";
-    dangerousVer.value = "0";
-    payType.value = "1";
-    statusObj.value = "1";
-    enable_register.value = "1";
-    enable_pay.value = "1";
-    proxyUrl.value = "unknown";
-    var sdk = sdkId.value;
-    if (!chnId.value.startsWith(sdk)) {
-        chnId.value = sdk + "00001";
+window.InjectCode = function() {
+    function $(name) {
+        return document.getElementsByName(name)[0];
     }
-    urlObj.value = prefixUrl + urls[sdk] + "/" + gameShorName + "/" + chnId.value;
-    sdkName.value = sdkNames[sdk];
-    packageName.value = packageNames[sdk];
-    serverSecret.value = serverSecrets[gameShorName];
+    return {
+        sdkName : $("sdk_name"),
+        packageName : $("package_name"),
+        proxyUrl : $("proxy_url"),
+        chnId : $("chn_id"),
+        sdkId : $("sdk_id"),
+        statusObj : $("status"),
+        enable_register : $("enable_register"),
+        enable_pay : $("enable_pay"),
+        gameShorName : window.location.host.split(".")[0],
+        prefixUrl : "http://fxcb.umipay.com/",
+        _this : "",
+        urls : {
+            "10019" : "opay_iap",
+            "10024" : "owpay_iap",
+            "10025" : "h5",
+        },
+        sdkNames : {
+            "10019" : "iapopay",
+            "10024" : "owpay_iap",
+            "10025" : "h5",
+        },
+        packageNames : {
+            "10019" : "xxx.iapopay",
+            "10024" : "xxx.ow",
+            "10025" : "xxx.h5",
+        },
+        /// appid 运营那边给
+        appKeys : {
+            "sghj" : "b780142b09f59a04",
+            "jdwx" : "8b1c0b73738d40b7",
+            "xyl" : "5b4c87a34471065f",
+            "dyly" : "",
+        },
+        /// server_secret 运营那边给
+        serverSecrets : {
+            "sghj" : "71207e5bda1f8d1d",
+            "jdwx" : "69da2a872ce86982",
+            "xyl" : "ff8396b03245e77f",
+            "dyly" : "",
+        },
+        /// 在 https://owadm.ouwan.cn/pay/opay/game/list/ 这里面找，没有就新建一个
+        opaySecrets : {
+            "sghj" : "c3e459315a0a4a78",
+            "jdwx" : "ff8396b03245e77f",
+            "xyl" : "",
+            "dyly" : "8a8a80ffb1f051dd",
+        },
+        init : function() {
+            _this = this;
+            _this.chnId.addEventListener("change", function(){
+                _this.setUrl(_this.sdkId.value);
+            });
+            _this.sdkId.addEventListener("change", function() {
+                setTimeout(_this.setConfig, 200);
+            });
+            _this.chnId.value = "1001900001";
+            _this.sdkId.value = "10019";
+            var ev = document.createEvent("HTMLEvents");
+            ev.initEvent("change", false, true);
+            _this.sdkId.dispatchEvent(ev);
+        },
+        setUrl : function(sdk) {
+            /// http://fxcb.umipay.com/sdk名/游戏名/渠道号
+            $("url").value = _this.prefixUrl + _this.urls[sdk] + "/" + _this.gameShorName + "/" + _this.chnId.value;
+        },
+        setConfig : function() {
+            $("DANGEROUS_PAY_VERSION").value = "0";
+            $("paytype").value = "1";
+            $("red_point").value = "1";
+            _this.proxyUrl.value = "unknown";
+            _this.statusObj.value = "1";
+            _this.enable_register.value = "1";
+            _this.enable_pay.value = "1";
+            
+            var sdk = _this.sdkId.value;
+            _this.sdkName.value = _this.sdkNames[sdk];
+            _this.packageName.value = _this.packageNames[sdk];
+            $("server_secret").value = _this.serverSecrets[_this.gameShorName];
+            /// 渠道号格式：1001900001, 1001900002, ..., 1001900010
+            if (!_this.chnId.value.startsWith(sdk)) {
+                _this.chnId.value = sdk + "00001";
+            }
+            _this.setUrl(sdk);
 
-    switch (sdk) {
-        case "10019":
-            opayType.value = "{\"zfb\":{\"enable\":1,\"discount\":100},\"zwxpay\":{\"enable\":1,\"discount\":100},\"zfb_wap\":{\"enable\":1,\"discount\":100},\"iap\":{\"enable\":0,\"discount\":100}}";
-            opaySecret.value = opaySecrets[gameShorName];
-        break;
-        case "10024":
-        case "10025":
-            appKey.value = appKeys[gameShorName];
-            owpayAES.value = "09f5e8f7fc1a0d27a14521b6c96266hg";
-            owpayType.value = "{\"iap\":{\"enable\":0},\"zfb\":{\"enable\":1},\"zwx\":{\"enable\":1}}";
-            payinfoSecret.value = "13cedd4db5f92f41";
-        break;
-    }
-}
-
-chnId.addEventListener("change", function(){
-    var urlObj = document.getElementsByName("url")[0];
-    var sdk = sdkId.value;
-    urlObj.value = prefixUrl + urls[sdk] + "/" + gameShorName + "/" + chnId.value;;
-});
-sdkId.addEventListener("change", function() {
-    setTimeout(setConfig, 100);
-});
-chnId.value = "1001900001";
-sdkId.value = "10019";
-var ev = document.createEvent("HTMLEvents");  
-ev.initEvent("change", false, true);  
-sdkId.dispatchEvent(ev);
+            switch (sdk) {
+                case "10019":
+                    $("opay_type").value = "{\"zfb\":{\"enable\":1,\"discount\":100},\"zwxpay\":{\"enable\":1,\"discount\":100},\"zfb_wap\":{\"enable\":1,\"discount\":100},\"iap\":{\"enable\":0,\"discount\":100}}";
+                    $("opay_server_secret").value = _this.opaySecrets[_this.gameShorName];
+                break;
+                case "10024":
+                case "10025":
+                    $("appkey").value = _this.appKeys[_this.gameShorName];
+                    /// 后台给参数
+                    $("owpay_aeskey").value = "09f5e8f7fc1a0d27a14521b6c96266hg";
+                    $("owpay_type").value = "{\"iap\":{\"enable\":0},\"zfb\":{\"enable\":1},\"zwx\":{\"enable\":1}}";
+                    $("payinfo_secret").value = "13cedd4db5f92f41";
+                break;
+            }
+        }
+    };
+}();
+window.InjectCode.init();
