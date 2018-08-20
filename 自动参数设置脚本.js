@@ -34,7 +34,7 @@ window.InjectCode = function() {
             "sghj" : "b780142b09f59a04",
             "jdwx" : "8b1c0b73738d40b7",
             "xyl" : "5b4c87a34471065f",
-            "dyly" : "",
+            "dyly" : "4c71a5fd2986ef89",
         },
         /// server_secret 运营那边给
         serverSecrets : {
@@ -46,8 +46,8 @@ window.InjectCode = function() {
         /// 在 https://owadm.ouwan.cn/pay/opay/game/list/ 这里面找，没有就新建一个
         opaySecrets : {
             "sghj" : "c3e459315a0a4a78",
-            "jdwx" : "ff8396b03245e77f",
-            "xyl" : "",
+            "jdwx" : "3c42a831f8dc65c1",
+            "xyl" : "b4bbd3ec1f03c473",
             "dyly" : "8a8a80ffb1f051dd",
         },
         init : function() {
