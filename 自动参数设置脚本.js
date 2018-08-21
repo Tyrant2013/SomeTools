@@ -4,6 +4,7 @@ window.InjectCode = function() {
     }
     return {
         sdkName : $("sdk_name"),
+        gameType : $("game_type"),
         packageName : $("package_name"),
         proxyUrl : $("proxy_url"),
         chnId : $("chn_id"),
@@ -13,6 +14,7 @@ window.InjectCode = function() {
         enable_pay : $("enable_pay"),
         gameShorName : window.location.host.split(".")[0],
         prefixUrl : "http://fxcb.umipay.com/",
+        resultDiv : "",
         _this : "",
         urls : {
             "10019" : "opay_iap",
@@ -52,14 +54,25 @@ window.InjectCode = function() {
         },
         init : function() {
             _this = this;
-            _this.chnId.addEventListener("change", function(){
+            _this.chnId.addEventListener("change", function() {
                 _this.setUrl(_this.sdkId.value);
+                _this.showResult();
+            });
+            _this.gameType.addEventListener("change", function() {
+                _this.showResult();
             });
             _this.sdkId.addEventListener("change", function() {
                 setTimeout(_this.setConfig, 200);
+                _this.showResult();
             });
             _this.chnId.value = "1001900001";
             _this.sdkId.value = "10019";
+            /// 显示参数结果，是要给到运营那边的参数，显示出来方便整理。
+            _this.resultDiv = document.createElement("div");
+            _this.resultDiv.setAttribute("id", "resultDiv");
+            _this.resultDiv.setAttribute("style", "color: white; background-color: black; padding: 20px;");
+            document.getElementById("sidebar").appendChild(_this.resultDiv);
+
             var ev = document.createEvent("HTMLEvents");
             ev.initEvent("change", false, true);
             _this.sdkId.dispatchEvent(ev);
@@ -101,7 +114,16 @@ window.InjectCode = function() {
                     $("payinfo_secret").value = "13cedd4db5f92f41";
                 break;
             }
-        }
+        },
+        showResult: function() {
+            _this.resultDiv.innerHTML = _this.gameType.options[_this.gameType.selectedIndex].title + "<br>" + "渠道号 " + _this.chnId.value + "<br>" + "子渠道号 0";
+            var input = document.createElement("input");
+            document.body.appendChild(input);
+            input.setAttribute("value", _this.resultDiv.innerHTML.replace(/<br>/g, "\r\n"));
+            input.select();
+            document.execCommand("copy");
+            console.log("复制成功");
+        },
     };
 }();
 window.InjectCode.init();
