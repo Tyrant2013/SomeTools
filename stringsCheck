@@ -4,20 +4,35 @@ if [ -z "$1" ]; then
     exit 1
 fi
 fileName=$1
+extern=${fileName##*.}
 
+if [ "$extern" = "png" ]; then
+    exit 1
+fi
+
+if [ "$extern" = "jpg" ]; then
+    exit 1
+fi
+
+ShortName=${fileName##*/}
+ResultFile="/work/${ShortName}_CheckResult.txt"
+echo "$fileName" > "$ResultFile"
+echo "" >> "$ResultFile"
+echo "在二进制文件中查找的结果:" >> "$ResultFile"
+echo "echecking:"$fileName
 echo "************************** check in binary file **************************"
 echo ""
 
 while IFS='' read -r line || [[ -n "$line" ]]; do
     echo "Checking keyword '$line' ..."
-    strings - -a "$fileName" | grep -ni $line
+    strings - -a "$fileName" | grep -ni $line >> "$ResultFile"
 done < keywords.txt
 
 echo ""
 echo "************************** binary file check done !!!! **************************"
 echo ""
+echo "" >> "$ResultFile"
 
-extern=${fileName##*.}
 if [ "$extern" = "a" ]; then
     exit 1
 fi
@@ -31,29 +46,35 @@ mkdir "$clsPath"
 
 class-dump -H -o "$clsPath" "$fileName"
 
+echo "在头文件中查找的结果:" >> "$ResultFile"
 echo ""
 echo "************************** check in header file **************************"
 echo ""
 
 while IFS='' read -r line || [[ -n "$line" ]]; do
     echo "Checking in header file for keyword '$line' ..."
-    find "${clsPath}/" | xargs grep -ri "$line" -n
+    find "${clsPath}/" | xargs grep -ri "$line" -n >> "$ResultFile"
 done < keywords.txt
 
 echo ""
 echo "************************** header file check done **************************"
 echo ""
+echo "" >> "$ResultFile"
 
 echo "************************** check in file name **************************"
 echo ""
+echo "在文件名中查找的结果:" >> "$ResultFile"
 
 while IFS='' read -r line || [[ -n "$line" ]]; do
     echo "Checking in file name for keyword '$line' ..."
-    find "${clsPath}/" -name "*$line*"
+    find "${clsPath}/" -name "*$line*" >> "$ResultFile"
 done < keywords.txt
 
 echo ""
 echo "************************** file name check done **************************"
 echo ""
 
+rm -rf "$clsPath"
+
 echo "All done!"
+open "$ResultFile"
