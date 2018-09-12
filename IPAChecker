@@ -1,0 +1,9 @@
+#!/bin/bash
+
+TmpDir="/work/checktmp/"
+
+unzip -qo "$1" -d "${TmpDir}"
+
+find "${TmpDir}" -type f -perm -111 -exec stringsCheck {} \;
+
+rm -rf "${TmpDir}"
