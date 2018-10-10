@@ -56,7 +56,7 @@ for file in $Files; do
     
     # 修改文件内容
     if [ $externName = "h" ]; then
-        echo "    ├修改头文件 ${fileName} , 需要修改引用了这个头文件的想关文件..."\
+        echo "    ├修改头文件 ${fileName} , 需要修改引用了这个头文件的想关文件..."
         for ContentFile in `find $ProjectPath -type f \( -name "${OldPrefix}*${filterExtern}" -o -name "${NewPrefix}*${filterExtern}" \) -exec grep ${fileName} {} -l \;`; do
             echo "      ├相关文件 ${ContentFile} "
             sed -i .bk "s/${shortName}\.h/${newFileName}/g" ${ContentFile}
@@ -187,6 +187,30 @@ for block in `find $ProjectPath -type f -name "${NewPrefix}*.*" -exec grep -Pio 
     for file in `find $ProjectPath -type f \( -name "${NewPrefix}*.*" -o -name "${OldPrefix}*.*" \) -exec grep $block {} -l \;`; do
         sed -i .bk "s/${block}/${newBlockName}/g" $file
         rm -rf ${file}.bk
+    done
+done
+
+echo "处理文件夹名字: 现脚本只能处理 2 层的文件夹，第三层的话还要继续改脚本"
+list=`find $ProjectPath -type d -name "${OldPrefix}*" | awk '{ print length, $0 }' | sort -n -s| awk '{ print $2 }'`
+for item in ${list[@]}; do
+    OldDirName=${item##*/}
+    NewDirName=${OldDirName/${OldPrefix}/${NewPrefix}}
+    NewName=${item//${OldPrefix}/${NewPrefix}}
+    count=`echo $item | grep -o ${OldPrefix} | wc -l`
+    if [ $count = 1 ]; then
+        echo "修改文件夹 ${item} 为 ${NewName}"
+        mv -n $item $NewName
+    else
+        NewDir=${item/${OldPrefix}/${NewPrefix}}
+        echo "修改文件夹 ${NewDir} 为 ${NewName}"
+        mv -n $NewDir $NewName
+    fi
+
+    # 修改 project.pbxproj 文件
+    for projectDir in $XcodeProjs; do
+        echo "    ├修改项目配置文件 ${projectDir}/project.pbxproj"
+        sed -i .bk "s/${OldDirName}/${NewDirName}/g" ${projectDir}/project.pbxproj
+        rm -rf ${ProjectPath}/project.pbxproj.bk
     done
 done
 
