@@ -5,6 +5,16 @@ if [ $# != 3 ]; then
     exit 1
 fi
 
+if [ ! -d $1 ]; then
+    echo "项目文件夹 $1 不存在，请检查"
+    exit 1 
+fi
+
+if [ $3 = "YMU" ]; then
+    echo "$3 这个前缀由于历史原因不能用，还是换一个吧"
+    exit 1
+fi
+
 ProjectPath=$1
 OldPrefix=$2
 NewPrefix=$3
@@ -14,7 +24,7 @@ litterNewPrefix=`echo $NewPrefix | tr 'A-Z' 'a-z'`
 longReplace="s/${litterOldPrefix}_/${litterNewPrefix}_/g; s/${litterOldPrefix}th_/${litterNewPrefix}th_/g; s/${litterOldPrefix}fx_/${litterNewPrefix}fx_/g; s/k${OldPrefix}/k${NewPrefix}/g"
 
 # 不需要修改的文件名和类名，这些改了后会比较麻烦，所以保留
-UnChangeFile=("OWSFXConfiguration" "OWSFXSDKManager" "OWSFXManagerHeader")
+UnChangeFile=("OWSFXConfiguration" "OWSFXSDKManager" "OWSFXManagerHeader" "UWPFXBusiness" "UWPFXDataInfo")
 UnChangeCls=("OWSFXConfiguration" "OWSFXUser" "OWSFXReportItem" "OWSFXBusinessItem" "OWSFXBusinessCallBack" "OWSFXSDKManager")
 
 echo "即将修改项目文件夹 ${ProjectPath} 现在的前缀 ${OldPrefix} 为 ${NewPrefix} "
@@ -117,13 +127,13 @@ echo ""
 echo "几个特殊文件处理:"
 find $ProjectPath -name "YMUSDKitCOF-Prefix.pch" -exec sed -i .bk "s/${OldPrefix}/${NewPrefix}/g" {} \;
 find $ProjectPath -name "client.mm" -exec sed -i .bk "s/${OldPrefix}APICode\.h/${NewPrefix}APICode.h/g" {} \;
-find $ProjectPath -name "UIImage+OWSBase64.m" -exec sed -i .bk "s/${OldPrefix}DataToolKit\.h/${NewPrefix}DataToolKit.h/g" {} \;
-find $ProjectPath -name "UIImage+OWSBase64.m.bk" -exec rm -rf {} \;
+find $ProjectPath -name "UIImage+${OldPrefix}Base64.m" -exec sed -i .bk "s/${OldPrefix}DataToolKit\.h/${NewPrefix}DataToolKit.h/g" {} \;
+find $ProjectPath -name "UIImage+${OldPrefix}Base64.m.bk" -exec rm -rf {} \;
 
-find $ProjectPath -type f \( -name "client.*" -o -name "encoding.*" -o -name "ows_md5.*" -o -name "log.*" -o -name "xxtea.*" -o -name "UIImage+OWSBase64.*" \) -exec sed -i .bk "${longReplace}" {} \;
-find $ProjectPath -type f \( -name "YMUSDKitCOF-Prefix.pch.bk" -o -name "encoding.*.bk" -o -name "ows_md5.*.bk" -o -name "client.*.bk" -o -name "log.*.bk" -o -name "xxtea.*.bk" -o -name "UIImage+OWSBase64.*.bk" \) -exec rm -rf {} \;
+find $ProjectPath -type f \( -name "client.*" -o -name "encoding.*" -o -name "${litterOldPrefix}_md5.*" -o -name "log.*" -o -name "xxtea.*" -o -name "UIImage+${OldPrefix}Base64.*" \) -exec sed -i .bk "${longReplace}" {} \;
+find $ProjectPath -type f \( -name "YMUSDKitCOF-Prefix.pch.bk" -o -name "encoding.*.bk" -o -name "${litterOldPrefix}_md5.*.bk" -o -name "client.*.bk" -o -name "log.*.bk" -o -name "xxtea.*.bk" -o -name "UIImage+${OldPrefix}Base64.*.bk" \) -exec rm -rf {} \;
 
-for file in `find $ProjectPath -type f -name "ows_md5.*"`; do
+for file in `find $ProjectPath -type f -name "${litterOldPrefix}_md5.*"`; do
     filePath=${file%/*}
     fileName=${file##*/}
     externName=${file##*.}
@@ -191,7 +201,7 @@ for block in `find $ProjectPath -type f -name "${NewPrefix}*.*" -exec grep -Pio 
 done
 
 echo "处理文件夹名字: 现脚本只能处理 2 层的文件夹，第三层的话还要继续改脚本"
-list=`find $ProjectPath -type d -name "${OldPrefix}*" | awk '{ print length, $0 }' | sort -n -s| awk '{ print $2 }'`
+list=`find $ProjectPath -type d \( -name "${OldPrefix}*" ! -name "*(deprecated)" \) | awk '{ print length, $0 }' | sort -n -s | awk '{ print $2 }'`
 for item in ${list[@]}; do
     OldDirName=${item##*/}
     NewDirName=${OldDirName/${OldPrefix}/${NewPrefix}}
