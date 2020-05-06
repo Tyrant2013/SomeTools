@@ -1,12 +1,31 @@
 #!/bin/bash
 
-TmpDirectory="/work/tmp/"
-ResignProvisionFile="/work/ResignAppFiles/iRegign.mobileprovision"
+TmpDirectory="/Users/zhxw/work/tmp/"
 PayloadPath="${TmpDirectory}Payload"
 PlistBuddy="/usr/libexec/PlistBuddy"
 OriginFile="$1"
 ResignedFile="${OriginFile%.*}-resigned.ipa"
+ResignProvisionFile="/Users/zhxw/work/ResignAppFiles/iRegign.mobileprovision"
 CertificationName="iPhone Distribution: HA Youmi INC"
+# ResignProvisionFile="/Users/zhxw/work/dis0327tgbh.mobileprovision"
+# CertificationName="iPhone Distribution: Anne Stone (B333B64942)"
+
+# 后面添加的，批量打包的时候可以统一保存到一个地方，免得混在一起不好区分
+saveDir=$2
+if [ -z $saveDir ]; then
+    ResignedFile="${OriginFile%.*}-resigned.ipa"
+else
+    path=${OriginFile%/*}
+    cpath="${path}/${saveDir}"
+    if [ ! -d $cpath ]; then
+        mkdir $cpath
+    fi
+    fileNameE=${OriginFile##*/}
+    name=${fileNameE%.*}
+    ResignedFile="${cpath}/${name}-resigned.ipa"
+fi
+
+echo $ResignedFile
 
 if [ -f "$ResignedFile" ]; then
     echo "find old resigned file, will delete it!"
@@ -65,10 +84,6 @@ done < "${TmpDirectory}needCodeSigns.txt"
 cd "$TmpDirectory"
 zip -qry "$ResignedFile" "Payload"
 # mv ab.ipa "$ResignedFile"
-
-### 这下面这行代码打包出来的怎么就不能安装了!!!!!!!
-### (花一个下午终于发现)下面这行代码不能打包成功, 是因为会把Payload上一整个路径打包进去!!!! $PayloadPath是/work/tmp/Payload 打包完成再解压不是Payload文件夹, 是/work/tmp/Payload!!!!!!!
-# zip -qry "$ResignedFile" "$PayloadPath"
 
 echo "output file: $ResignedFile"
 #扫尾
