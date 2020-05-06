@@ -15,17 +15,20 @@ saveDir=$2
 if [ -z $saveDir ]; then
     ResignedFile="${OriginFile%.*}-resigned.ipa"
 else
-    path=${OriginFile%/*}
+    # path=${OriginFile%/*}
+    path=`dirname $OriginFile`
     cpath="${path}/${saveDir}"
     if [ ! -d $cpath ]; then
         mkdir $cpath
     fi
-    fileNameE=${OriginFile##*/}
-    name=${fileNameE%.*}
+    # fileNameE=${OriginFile##*/}
+    # name=${fileNameE%.*}
+    name=`basename $OriginFile .ipa`
     ResignedFile="${cpath}/${name}-resigned.ipa"
 fi
 
 echo $ResignedFile
+exit 0
 
 if [ -f "$ResignedFile" ]; then
     echo "find old resigned file, will delete it!"
