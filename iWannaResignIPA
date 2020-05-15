@@ -27,8 +27,6 @@ else
     ResignedFile="${cpath}/${name}-resigned.ipa"
 fi
 
-echo $ResignedFile
-exit 0
 
 if [ -f "$ResignedFile" ]; then
     echo "find old resigned file, will delete it!"
